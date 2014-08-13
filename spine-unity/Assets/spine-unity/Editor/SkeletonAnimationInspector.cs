@@ -78,14 +78,21 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector {
 		float time = Math.Max(component.currentAnimTime, 0);
 		float maxAnimTime =(float)( component.skeleton.Data.Animations [animationIndex].Duration / component.timeScale);
 		component.currentAnimTime=GUILayout.HorizontalSlider (Math.Min(time, maxAnimTime), 0f, maxAnimTime);
+	//	#if UNITY_EDITOR
 		if (component.currentAnimTime != lastMaxAnimTime) {
 			component.PlayTo ();
 			lastMaxAnimTime=component.currentAnimTime;
 		}
 		float reloadWidth = GUI.skin.label.CalcSize(new GUIContent("Reload")).x + 20;
 		if (GUILayout.Button("Reload", GUILayout.Width(reloadWidth))) {
+			if (component.skeletonDataAsset != null) {
+				if (component.skeletonDataAsset.atlasAsset != null)
+					component.skeletonDataAsset.atlasAsset.Reset();
+				component.skeletonDataAsset.Reset();
+			}
 			component.Reset();
 		} 
+	//	#endif
 		//END
 	}
 		private float lastMaxAnimTime=0f;

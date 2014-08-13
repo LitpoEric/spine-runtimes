@@ -379,9 +379,9 @@ public class SkeletonRenderer : MonoBehaviour {
 			firstVertex += attachmentVertexCount;
 		}
 	}
-	
+
 	#if UNITY_EDITOR
-	void OnDrawGizmos() {
+	public void OnDrawGizmos() {
 		// Make selection easier by drawing a clear gizmo over the skeleton.
 		if (vertices == null) return;
 		Vector3 gizmosCenter = new Vector3();
