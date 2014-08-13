@@ -92,13 +92,8 @@ public class SkeletonAnimation : SkeletonRenderer {
 	public float currentAnimTime;
 	public void PlayTo(){
 		if (!valid) return;
-		//Update(skeleton.Time*-1+currentAnimTime);
-		state = new Spine.AnimationState(skeletonDataAsset.GetAnimationStateData());
-		if (_animationName != null && _animationName.Length > 0) {
-			state.SetAnimation(0, _animationName, loop);
-			Update(0);
-		}
-		Update (currentAnimTime);
+		
+		Update(skeleton.Time*-1+currentAnimTime);
 		LateUpdate ();
 	}
 
