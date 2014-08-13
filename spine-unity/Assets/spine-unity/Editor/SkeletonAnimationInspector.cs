@@ -34,13 +34,14 @@ using UnityEngine;
 
 [CustomEditor(typeof(SkeletonAnimation))]
 public class SkeletonAnimationInspector : SkeletonRendererInspector {
-	protected SerializedProperty animationName, loop, timeScale;
+	protected SerializedProperty animationName, loop, timeScale,currentAnimTime;
 
 	protected override void OnEnable () {
 		base.OnEnable();
 		animationName = serializedObject.FindProperty("_animationName");
 		loop = serializedObject.FindProperty("loop");
 		timeScale = serializedObject.FindProperty("timeScale");
+		currentAnimTime=serializedObject.FindProperty("currentAnimTime");
 	}
 
 	protected override void gui () {
@@ -50,7 +51,6 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector {
 		if (!component.valid) return;
 
 		// Animation name.
-		{
 			String[] animations = new String[component.skeleton.Data.Animations.Count + 1];
 			animations[0] = "<None>";
 			int animationIndex = 0;
@@ -69,10 +69,24 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector {
 			String selectedAnimationName = animationIndex == 0 ? null : animations[animationIndex];
 			component.AnimationName = selectedAnimationName;
 			animationName.stringValue = selectedAnimationName;
-		}
 
 		EditorGUILayout.PropertyField(loop);
 		EditorGUILayout.PropertyField(timeScale);
 		component.timeScale = Math.Max(component.timeScale, 0);
+		//×Ô¼ºµÄ±à¼­Æ÷
+		EditorGUILayout.PropertyField(currentAnimTime);
+		float time = Math.Max(component.currentAnimTime, 0);
+		float maxAnimTime =(float)( component.skeleton.Data.Animations [animationIndex].Duration / component.timeScale);
+		component.currentAnimTime=GUILayout.HorizontalSlider (Math.Min(time, maxAnimTime), 0f, maxAnimTime);
+		if (component.currentAnimTime != lastMaxAnimTime) {
+			component.PlayTo ();
+			lastMaxAnimTime=component.currentAnimTime;
+		}
+		float reloadWidth = GUI.skin.label.CalcSize(new GUIContent("Reload")).x + 20;
+		if (GUILayout.Button("Reload", GUILayout.Width(reloadWidth))) {
+			component.Reset();
+		}
+		//END
 	}
+		private float lastMaxAnimTime=0f;
 }

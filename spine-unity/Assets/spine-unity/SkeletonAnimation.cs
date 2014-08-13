@@ -70,13 +70,15 @@ public class SkeletonAnimation : SkeletonRenderer {
 			state.SetAnimation(0, _animationName, loop);
 			Update(0);
 		}
+		
+		currentAnimTime = 0;
 	}
 
 	public virtual void Update () {
 		Update(Time.deltaTime);
 	}
 
-	public virtual void Update (float deltaTime) {
+	public virtual void Update (float 	deltaTime) { 
 		if (!valid) return;
 
 		deltaTime *= timeScale;
@@ -85,5 +87,19 @@ public class SkeletonAnimation : SkeletonRenderer {
 		state.Apply(skeleton);
 		if (UpdateBones != null) UpdateBones(this);
 		skeleton.UpdateWorldTransform();
+		currentAnimTime += deltaTime;
+	}
+	//当前播放时间
+	public float currentAnimTime;
+	public void PlayTo(){
+		if (!valid) return;
+		
+		base.Reset();
+		state = new Spine.AnimationState(skeletonDataAsset.GetAnimationStateData());
+		if (_animationName != null && _animationName.Length > 0) {
+			state.SetAnimation(0, _animationName, loop);
+			Update(0);
+		}
+		Update (currentAnimTime);
 	}
 }
