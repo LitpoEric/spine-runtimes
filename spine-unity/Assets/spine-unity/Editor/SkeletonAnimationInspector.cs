@@ -73,7 +73,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector {
 		EditorGUILayout.PropertyField(loop);
 		EditorGUILayout.PropertyField(timeScale);
 		component.timeScale = Math.Max(component.timeScale, 0);
-		//×Ô¼ºµÄ±à¼­Æ÷
+		//è‡ªå·±çš„ç¼–è¾‘å™¨
 		EditorGUILayout.PropertyField(currentAnimTime);
 		float time = Math.Max(component.currentAnimTime, 0);
 		float maxAnimTime =(float)( component.skeleton.Data.Animations [animationIndex].Duration / component.timeScale);

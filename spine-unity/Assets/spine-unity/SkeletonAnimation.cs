@@ -89,7 +89,7 @@ public class SkeletonAnimation : SkeletonRenderer {
 		skeleton.UpdateWorldTransform();
 		currentAnimTime += deltaTime;
 	}
-	//当前播放时间
+	//褰撳墠鎾斁鏃堕棿
 	public float currentAnimTime;
 	public void PlayTo(){
 		if (!valid) return;
