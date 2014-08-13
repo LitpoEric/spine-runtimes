@@ -85,8 +85,9 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector {
 		float reloadWidth = GUI.skin.label.CalcSize(new GUIContent("Reload")).x + 20;
 		if (GUILayout.Button("Reload", GUILayout.Width(reloadWidth))) {
 			component.Reset();
-		}
+		} 
 		//END
 	}
 		private float lastMaxAnimTime=0f;
+
 }

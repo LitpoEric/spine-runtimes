@@ -87,7 +87,6 @@ public class SkeletonAnimation : SkeletonRenderer {
 		state.Apply(skeleton);
 		if (UpdateBones != null) UpdateBones(this);
 		skeleton.UpdateWorldTransform();
-		currentAnimTime += deltaTime;
 	}
 	//当前播放时间
 	public float currentAnimTime;
@@ -101,5 +100,6 @@ public class SkeletonAnimation : SkeletonRenderer {
 			Update(0);
 		}
 		Update (currentAnimTime);
+
 	}
 }
