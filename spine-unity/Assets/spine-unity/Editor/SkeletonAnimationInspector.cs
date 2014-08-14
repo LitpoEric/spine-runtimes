@@ -34,7 +34,7 @@ using UnityEngine;
 [CustomEditor(typeof(SkeletonAnimation))]
 public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
-	protected SerializedProperty animationName, loop, timeScale, currentAnimTime,currentAnimFrame;
+		protected SerializedProperty animationName, loop, timeScale, currentAnimTime, currentAnimFrame;
 
 		protected override void OnEnable ()
 		{
@@ -79,26 +79,28 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 				component.timeScale = Math.Max (component.timeScale, 0);
 				//自己的编辑器
 				if (animationIndex > 0) {
-						float animDuration=component.skeleton.Data.Animations [animationIndex - 1].Duration;
+						float animDuration = component.skeleton.Data.Animations [animationIndex - 1].Duration;
 						EditorGUILayout.PropertyField (currentAnimTime);
 						//帧设置和显示页面
-						EditorGUILayout.BeginHorizontal();
-						frame=EditorGUILayout.IntField("Current Anim Frame",(int)Math.Min(frame,animDuration*30));
+						EditorGUILayout.PropertyField (currentAnimFrame);
+						EditorGUILayout.BeginHorizontal ();
+						frame = component.currentAnimFrame;
 						float loadWidth = GUI.skin.label.CalcSize (new GUIContent ("load")).x + 20;
 						if (GUILayout.Button ("load", GUILayout.Width (loadWidth))) {
-							if (component.skeletonDataAsset != null) {
-								component.currentAnimTime=(float)(frame/(30.0*component.timeScale));
-							}
+								if (component.skeletonDataAsset != null) {
+										component.currentAnimTime = (float)(frame / (30.0 * component.timeScale));
+								}
 						}
-						EditorGUILayout.EndHorizontal();
+						EditorGUILayout.EndHorizontal ();
 						//END
 						float time = Math.Max (component.currentAnimTime, 0);
-						float maxAnimTime = (float)(animDuration/ component.timeScale);
+						float maxAnimTime = (float)(animDuration / component.timeScale);
 						component.currentAnimTime = GUILayout.HorizontalSlider (Math.Min (time, maxAnimTime), 0f, maxAnimTime);
 						if (component.currentAnimTime != lastMaxAnimTime) {
 								component.PlayTo ();
 								lastMaxAnimTime = component.currentAnimTime;
-								frame=(int)(component.currentAnimTime*30*component.timeScale);
+								frame = (int)(component.currentAnimTime * 30 * component.timeScale);
+								component.currentAnimFrame = frame;
 						}
 						float reloadWidth = GUI.skin.label.CalcSize (new GUIContent ("Reload")).x + 20;
 						if (GUILayout.Button ("Reload", GUILayout.Width (reloadWidth))) {
@@ -106,9 +108,9 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 										if (component.skeletonDataAsset.atlasAsset != null)
 												component.skeletonDataAsset.atlasAsset.Reset ();
 										component.skeletonDataAsset.Reset ();
+										component.Reset ();
 								}
-								component.Reset ();
-						} 
+						}
 				}
 				//END
 		}

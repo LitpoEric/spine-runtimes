@@ -80,7 +80,6 @@ public class SkeletonAnimation : SkeletonRenderer {
 
 	public virtual void Update (float 	deltaTime) { 
 		if (!valid) return;
-
 		deltaTime *= timeScale;
 		skeleton.Update(deltaTime);
 		state.Update(deltaTime);
@@ -90,10 +89,11 @@ public class SkeletonAnimation : SkeletonRenderer {
 	}
 	//当前播放时间
 	public float currentAnimTime;
+	public float currentAnimFrame;
 	public void PlayTo(){
 		if (!valid) return;
 		
-		Update(skeleton.Time*-1+currentAnimTime);
+		Update((float)((skeleton.Time*-1)/timeScale+currentAnimTime));
 		LateUpdate ();
 	}
 
