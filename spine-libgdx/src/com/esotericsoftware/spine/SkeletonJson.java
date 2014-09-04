@@ -36,6 +36,7 @@ import com.esotericsoftware.spine.Animation.CurveTimeline;
 import com.esotericsoftware.spine.Animation.DrawOrderTimeline;
 import com.esotericsoftware.spine.Animation.EventTimeline;
 import com.esotericsoftware.spine.Animation.FfdTimeline;
+import com.esotericsoftware.spine.Animation.IkConstraintTimeline;
 import com.esotericsoftware.spine.Animation.RotateTimeline;
 import com.esotericsoftware.spine.Animation.ScaleTimeline;
 import com.esotericsoftware.spine.Animation.Timeline;
@@ -48,7 +49,6 @@ import com.esotericsoftware.spine.attachments.BoundingBoxAttachment;
 import com.esotericsoftware.spine.attachments.MeshAttachment;
 import com.esotericsoftware.spine.attachments.RegionAttachment;
 import com.esotericsoftware.spine.attachments.SkinnedMeshAttachment;
-
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -93,8 +93,8 @@ public class SkeletonJson {
 		// Skeleton.
 		JsonValue skeletonMap = root.get("skeleton");
 		if (skeletonMap != null) {
-			skeletonData.version = skeletonMap.getString("spine");
 			skeletonData.hash = skeletonMap.getString("hash");
+			skeletonData.version = skeletonMap.getString("spine");
 			skeletonData.width = skeletonMap.getFloat("width");
 			skeletonData.height = skeletonMap.getFloat("height");
 		}
@@ -120,10 +120,10 @@ public class SkeletonJson {
 			String color = boneMap.getString("color", null);
 			if (color != null) boneData.getColor().set(Color.valueOf(color));
 
-			skeletonData.getBones().add(boneData);
+			skeletonData.bones.add(boneData);
 		}
 
-		// IK.
+		// IK constraints.
 		for (JsonValue ikMap = root.getChild("ik"); ikMap != null; ikMap = ikMap.next) {
 			IkConstraintData ikConstraintData = new IkConstraintData(ikMap.getString("name"));
 
@@ -131,17 +131,17 @@ public class SkeletonJson {
 				String boneName = boneMap.asString();
 				BoneData bone = skeletonData.findBone(boneName);
 				if (bone == null) throw new SerializationException("IK bone not found: " + boneName);
-				ikConstraintData.getBones().add(bone);
+				ikConstraintData.bones.add(bone);
 			}
 
 			String targetName = ikMap.getString("target");
-			ikConstraintData.setTarget(skeletonData.findBone(targetName));
-			if (ikConstraintData.getTarget() == null) throw new SerializationException("Target bone not found: " + targetName);
+			ikConstraintData.target = skeletonData.findBone(targetName);
+			if (ikConstraintData.target == null) throw new SerializationException("Target bone not found: " + targetName);
 
-			ikConstraintData.setBendDirection(ikMap.getBoolean("bendPositive", true) ? 1 : -1);
-			ikConstraintData.setMix(ikMap.getFloat("mix", 1));
+			ikConstraintData.bendDirection = ikMap.getBoolean("bendPositive", true) ? 1 : -1;
+			ikConstraintData.mix = ikMap.getFloat("mix", 1);
 
-			skeletonData.getIkConstraints().add(ikConstraintData);
+			skeletonData.ikConstraints.add(ikConstraintData);
 		}
 
 		// Slots.
@@ -159,7 +159,7 @@ public class SkeletonJson {
 
 			slotData.additiveBlending = slotMap.getBoolean("additive", false);
 
-			skeletonData.getSlots().add(slotData);
+			skeletonData.slots.add(slotData);
 		}
 
 		// Skins.
@@ -173,7 +173,7 @@ public class SkeletonJson {
 					if (attachment != null) skin.addAttachment(slotIndex, entry.name, attachment);
 				}
 			}
-			skeletonData.getSkins().add(skin);
+			skeletonData.skins.add(skin);
 			if (skin.name.equals("default")) skeletonData.defaultSkin = skin;
 		}
 
@@ -183,7 +183,7 @@ public class SkeletonJson {
 			eventData.intValue = eventMap.getInt("int", 0);
 			eventData.floatValue = eventMap.getFloat("float", 0f);
 			eventData.stringValue = eventMap.getString("string", null);
-			skeletonData.getEvents().add(eventData);
+			skeletonData.events.add(eventData);
 		}
 
 		// Animations.
@@ -203,7 +203,7 @@ public class SkeletonJson {
 		String path = map.getString("path", name);
 
 		switch (AttachmentType.valueOf(map.getString("type", AttachmentType.region.name()))) {
-		case region:
+		case region: {
 			RegionAttachment region = attachmentLoader.newRegionAttachment(skin, name, path);
 			if (region == null) return null;
 			region.setPath(path);
@@ -220,6 +220,7 @@ public class SkeletonJson {
 
 			region.updateOffset();
 			return region;
+		}
 		case boundingbox: {
 			BoundingBoxAttachment box = attachmentLoader.newBoundingBoxAttachment(skin, name);
 			if (box == null) return null;
@@ -244,6 +245,9 @@ public class SkeletonJson {
 			mesh.setTriangles(map.require("triangles").asShortArray());
 			mesh.setRegionUVs(map.require("uvs").asFloatArray());
 			mesh.updateUVs();
+
+			String color = map.getString("color", null);
+			if (color != null) mesh.getColor().set(Color.valueOf(color));
 
 			if (map.has("hull")) mesh.setHullLength(map.require("hull").asInt() * 2);
 			if (map.has("edges")) mesh.setEdges(map.require("edges").asIntArray());
@@ -275,6 +279,9 @@ public class SkeletonJson {
 			mesh.setTriangles(map.require("triangles").asShortArray());
 			mesh.setRegionUVs(uvs);
 			mesh.updateUVs();
+
+			String color = map.getString("color", null);
+			if (color != null) mesh.getColor().set(Color.valueOf(color));
 
 			if (map.has("hull")) mesh.setHullLength(map.require("hull").asInt() * 2);
 			if (map.has("edges")) mesh.setEdges(map.require("edges").asIntArray());
@@ -379,6 +386,22 @@ public class SkeletonJson {
 				} else
 					throw new RuntimeException("Invalid timeline type for a bone: " + timelineName + " (" + boneMap.name + ")");
 			}
+		}
+
+		// IK timelines.
+		for (JsonValue ikMap = map.getChild("ik"); ikMap != null; ikMap = ikMap.next) {
+			IkConstraintData ikConstraint = skeletonData.findIkConstraint(ikMap.name);
+			IkConstraintTimeline timeline = new IkConstraintTimeline(ikMap.size);
+			timeline.ikConstraintIndex = skeletonData.getIkConstraints().indexOf(ikConstraint, true);
+			int frameIndex = 0;
+			for (JsonValue valueMap = ikMap.child; valueMap != null; valueMap = valueMap.next) {
+				timeline.setFrame(frameIndex, valueMap.getFloat("time"), valueMap.getFloat("mix"),
+					valueMap.getBoolean("bendPositive") ? 1 : -1);
+				readCurve(timeline, frameIndex, valueMap);
+				frameIndex++;
+			}
+			timelines.add(timeline);
+			duration = Math.max(duration, timeline.getFrames()[timeline.getFrameCount() * 3 - 3]);
 		}
 
 		// FFD timelines.
@@ -491,7 +514,7 @@ public class SkeletonJson {
 		}
 
 		timelines.shrink();
-		skeletonData.getAnimations().add(new Animation(name, timelines, duration));
+		skeletonData.animations.add(new Animation(name, timelines, duration));
 	}
 
 	void readCurve (CurveTimeline timeline, int frameIndex, JsonValue valueMap) {
