@@ -89,7 +89,6 @@ public class SkeletonAnimation : SkeletonRenderer {
 	}
 	//当前播放时间
 	public float currentAnimTime;
-	public float currentAnimFrame;
 	public void PlayTo(){
 		if (!valid) return;
 		
