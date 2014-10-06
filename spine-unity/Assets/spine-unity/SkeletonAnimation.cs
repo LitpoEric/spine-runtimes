@@ -43,7 +43,10 @@ public class SkeletonAnimation : SkeletonRenderer {
 
 	public delegate void UpdateBonesDelegate(SkeletonAnimation skeleton);
 	public UpdateBonesDelegate UpdateBones;
-
+    public RepeatMode repeatMode = RepeatMode.Clamp;
+    public enum RepeatMode {Clamp,Repeat}
+    public enum AnimPlayType {UnityAnimation,SpineAnimation,Onion}
+    
 	[SerializeField]
 	private String _animationName;
 	public String AnimationName {
@@ -64,7 +67,7 @@ public class SkeletonAnimation : SkeletonRenderer {
 	public override void Reset () {
 		base.Reset();
 		if (!valid) return;
-
+       
 		state = new Spine.AnimationState(skeletonDataAsset.GetAnimationStateData());
 		if (_animationName != null && _animationName.Length > 0) {
 			state.SetAnimation(0, _animationName, loop);
@@ -73,10 +76,16 @@ public class SkeletonAnimation : SkeletonRenderer {
 		
 		currentAnimTime = 0;
 	}
-
+  
+    
 	public virtual void Update () {
-		Update(Time.deltaTime);
+        PlayTo();
+        // float deltaTime = animTime;
+        //Debug.Log(Time.deltaTime);
+        //Update(deltaTime);
+       // Update(Time.deltaTime);
 	}
+
 
 	public virtual void Update (float 	deltaTime) { 
 		if (!valid) return;
