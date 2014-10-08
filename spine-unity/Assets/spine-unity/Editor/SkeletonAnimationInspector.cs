@@ -33,10 +33,10 @@ using UnityEngine;
 using Spine;
 
 [CustomEditor(typeof(SkeletonAnimation))]
-<<<<<<< HEAD
 public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
-	protected SerializedProperty animationName, loop, timeScale, currentAnimTime;
+    protected SerializedProperty animationName, loop, timeScale, currentAnimTime;
+    protected bool isPrefab;
 
 	protected override void OnEnable ()
 	{
@@ -74,7 +74,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 
 		//TODO:  Refactor this to use GenericMenu and callbacks to avoid interfering with control by other behaviours.
 		// Animation name.
-		{
+
 			String[] animations = new String[component.skeleton.Data.Animations.Count + 1];
 			animations[0] = "<None>";
 			int animationIndex = 0;
@@ -98,7 +98,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 			}
 
 
-		}
+	
 
 		EditorGUILayout.PropertyField(loop);
 		EditorGUILayout.PropertyField(timeScale);
