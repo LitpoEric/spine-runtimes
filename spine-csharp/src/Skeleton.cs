@@ -302,5 +302,15 @@ namespace Spine {
 		public void Update (float delta) {
 			time += delta;
 		}
+
+        /// <summary>
+        /// Ë¢ÐÂµ½Ä³Ò»Ãë
+        /// </summary>
+        /// <param name="_time"></param>
+        public void UpdateToTime(float _time)
+        {
+            time = _time;
+            //SetToSetupPose();
+        }
 	}
 }

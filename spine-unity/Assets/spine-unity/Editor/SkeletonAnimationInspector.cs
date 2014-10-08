@@ -35,7 +35,7 @@ using Spine;
 [CustomEditor(typeof(SkeletonAnimation))]
 public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
-    protected SerializedProperty animationName, loop, timeScale, currentAnimTime;
+    protected SerializedProperty animationName, loop, timeScale, currentAnimTime, animPlayType;
     protected bool isPrefab;
 
 	protected override void OnEnable ()
@@ -45,6 +45,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 		loop = serializedObject.FindProperty ("loop");
 		timeScale = serializedObject.FindProperty ("timeScale");
 		currentAnimTime = serializedObject.FindProperty ("currentAnimTime");
+        animPlayType = serializedObject.FindProperty("animPlayType");
 
 		if (PrefabUtility.GetPrefabType(this.target) == PrefabType.Prefab)
 			isPrefab = true;
@@ -98,13 +99,13 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 			}
 
 
-	
+	 
 
 		EditorGUILayout.PropertyField(loop);
 		EditorGUILayout.PropertyField(timeScale);
 		component.timeScale = Math.Max(component.timeScale, 0);
-
 				//自己的编辑器
+                EditorGUILayout.PropertyField(animPlayType);
 				if (animationIndex > 0) {
 						float animDuration = component.skeleton.Data.Animations [animationIndex - 1].Duration;
 						EditorGUILayout.PropertyField (currentAnimTime);
@@ -138,6 +139,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 								}
 						}
 				}
+
 				//END
 
 		EditorGUILayout.Space();

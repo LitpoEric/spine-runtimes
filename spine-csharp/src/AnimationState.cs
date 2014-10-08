@@ -90,6 +90,49 @@ namespace Spine {
 				}
 			}
 		}
+        /// <summary>
+        /// 更新到某个时间
+        /// </summary>
+        public void UpdateToTime(float _time)
+        {
+            for (int i = 0; i < tracks.Count; i++)
+            {
+
+                TrackEntry current = tracks[i];
+                if (current == null) continue;
+                float delta = _time - current.time;
+                float trackDelta = delta * current.timeScale;
+                float time = current.time + trackDelta;
+                float endTime = current.endTime;
+
+                current.time = time;
+                if (current.previous != null)
+                {
+                    current.previous.time += trackDelta;
+                    current.mixTime += trackDelta;
+                }
+
+                // Check if completed the animation or a loop iteration.
+                if (current.loop ? (current.lastTime % endTime > time % endTime) : (current.lastTime < endTime && time >= endTime))
+                {
+                    int count = (int)(time / endTime);
+                    current.OnComplete(this, i, count);
+                    if (Complete != null) Complete(this, i, count);
+                }
+
+                TrackEntry next = current.next;
+                if (next != null)
+                {
+                    next.time = current.lastTime - next.delay;
+                    if (next.time >= 0) SetCurrent(i, next);
+                }
+                else
+                {
+                    // End non-looping animation when it reaches its end time and there is no next entry.
+                    if (!current.loop && current.lastTime >= current.endTime) ClearTrack(i);
+                }
+            }
+        }
 
 		public void Apply (Skeleton skeleton) {
 			List<Event> events = this.events;

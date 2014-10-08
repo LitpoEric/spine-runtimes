@@ -84,14 +84,21 @@ public class SkeletonAnimation : SkeletonRenderer {
 		
 		currentAnimTime = 0;
 	}
-  
+
     
 	public virtual void Update () {
-       // PlayTo();
+        if (animPlayType == AnimPlayType.UnityAnimation)
+        {
+           // PlayTo();
+            UpdateToTime(currentAnimTime);
+        }
+        if (animPlayType == AnimPlayType.SpineAnimation)
+        {
+            Update(Time.deltaTime);
+        }
         // float deltaTime = animTime;
         //Debug.Log(Time.deltaTime);
         //Update(deltaTime);
-        Update(Time.deltaTime);
 	}
 
 
@@ -122,7 +129,32 @@ public class SkeletonAnimation : SkeletonRenderer {
 		if (!valid) return;
 		
 		Update((float)((skeleton.Time*-1)/timeScale+currentAnimTime));
-		LateUpdate ();
+       // #if UNITY_EDITOR
+        LateUpdate ();
+      //  #endif
 	}
 
+    public void UpdateToTime(float time)
+    {
+        if (!valid) return;
+        skeleton.UpdateToTime(time);
+        state.UpdateToTime(time);
+        state.Apply(skeleton);
+
+        if (UpdateLocal != null)
+            UpdateLocal(this);
+
+        skeleton.UpdateWorldTransform();
+
+        if (UpdateWorld != null)
+        {
+            UpdateWorld(this);
+            skeleton.UpdateWorldTransform();
+        }
+
+        if (UpdateComplete != null)
+        {
+            UpdateComplete(this);
+        }
+    }
 }
