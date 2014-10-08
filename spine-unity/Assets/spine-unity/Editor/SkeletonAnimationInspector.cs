@@ -30,52 +30,80 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using Spine;
 
 [CustomEditor(typeof(SkeletonAnimation))]
+<<<<<<< HEAD
 public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
-		protected SerializedProperty animationName, loop, timeScale, currentAnimTime;
+	protected SerializedProperty animationName, loop, timeScale, currentAnimTime;
 
-		protected override void OnEnable ()
-		{
-				base.OnEnable ();
-				animationName = serializedObject.FindProperty ("_animationName");
-				loop = serializedObject.FindProperty ("loop");
-				timeScale = serializedObject.FindProperty ("timeScale");
-				currentAnimTime = serializedObject.FindProperty ("currentAnimTime");
-		}
+	protected override void OnEnable ()
+	{
+		base.OnEnable ();
+		animationName = serializedObject.FindProperty ("_animationName");
+		loop = serializedObject.FindProperty ("loop");
+		timeScale = serializedObject.FindProperty ("timeScale");
+		currentAnimTime = serializedObject.FindProperty ("currentAnimTime");
+
+		if (PrefabUtility.GetPrefabType(this.target) == PrefabType.Prefab)
+			isPrefab = true;
+
+
+	}
+
 
 		protected override void gui ()
 		{
 				base.gui ();
 
-				SkeletonAnimation component = (SkeletonAnimation)target;
-				if (!component.valid)
-						return;
+		SkeletonAnimation component = (SkeletonAnimation)target;
+		if (!component.valid)
+			return;
 
-				// Animation name.
-				String[] animations = new String[component.skeleton.Data.Animations.Count + 1];
-				animations [0] = "<None>";
-				int animationIndex = 0;
-				for (int i = 0; i < animations.Length - 1; i++) {
-						String name = component.skeleton.Data.Animations [i].Name;
-						animations [i + 1] = name;
-						if (name == animationName.stringValue)
-								animationIndex = i + 1;
+		//catch case where SetAnimation was used to set track 0 without using AnimationName
+		if (Application.isPlaying) {
+			TrackEntry currentState = component.state.GetCurrent(0);
+			if (currentState != null) {
+				if (component.AnimationName != animationName.stringValue) {
+					animationName.stringValue = currentState.Animation.Name;
 				}
+			}
+		}
+
+
+		//TODO:  Refactor this to use GenericMenu and callbacks to avoid interfering with control by other behaviours.
+		// Animation name.
+		{
+			String[] animations = new String[component.skeleton.Data.Animations.Count + 1];
+			animations[0] = "<None>";
+			int animationIndex = 0;
+			for (int i = 0; i < animations.Length - 1; i++) {
+				String name = component.skeleton.Data.Animations[i].Name;
+				animations[i + 1] = name;
+				if (name == animationName.stringValue)
+					animationIndex = i + 1;
+			}
 		
 				EditorGUILayout.BeginHorizontal ();
 				EditorGUILayout.LabelField ("Animation", GUILayout.Width (EditorGUIUtility.labelWidth));
 				animationIndex = EditorGUILayout.Popup (animationIndex, animations);
 				EditorGUILayout.EndHorizontal ();
 
-				String selectedAnimationName = animationIndex == 0 ? null : animations [animationIndex];
+
+			String selectedAnimationName = animationIndex == 0 ? null : animations[animationIndex];
+			if (component.AnimationName != selectedAnimationName) {
 				component.AnimationName = selectedAnimationName;
 				animationName.stringValue = selectedAnimationName;
+			}
 
-				EditorGUILayout.PropertyField (loop);
-				EditorGUILayout.PropertyField (timeScale);
-				component.timeScale = Math.Max (component.timeScale, 0);
+
+		}
+
+		EditorGUILayout.PropertyField(loop);
+		EditorGUILayout.PropertyField(timeScale);
+		component.timeScale = Math.Max(component.timeScale, 0);
+
 				//自己的编辑器
 				if (animationIndex > 0) {
 						float animDuration = component.skeleton.Data.Animations [animationIndex - 1].Duration;
@@ -111,8 +139,18 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 						}
 				}
 				//END
-		}
 
+		EditorGUILayout.Space();
+
+		if (!isPrefab) {
+			if (component.GetComponent<SkeletonUtility>() == null) {
+				if (GUILayout.Button(new GUIContent("Add Skeleton Utility", SpineEditorUtilities.Icons.skeletonUtility), GUILayout.Height(30))) {
+					component.gameObject.AddComponent<SkeletonUtility>();
+				}
+			}
+		}
+	}
+	
 		private float lastMaxAnimTime = 0f;
 		private float frame;
 }
