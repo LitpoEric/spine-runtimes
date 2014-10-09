@@ -37,7 +37,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
     protected SerializedProperty animationName, loop, timeScale, currentAnimTime, animPlayType;
     protected bool isPrefab;
-
+    public static bool enableEditorMode=true;
 	protected override void OnEnable ()
 	{
 		base.OnEnable ();
@@ -57,7 +57,6 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 		protected override void gui ()
 		{
 				base.gui ();
-
 		SkeletonAnimation component = (SkeletonAnimation)target;
 		if (!component.valid)
 			return;
@@ -102,9 +101,12 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 	 
 
 		EditorGUILayout.PropertyField(loop);
-		EditorGUILayout.PropertyField(timeScale);
-		component.timeScale = Math.Max(component.timeScale, 0);
-				//自己的编辑器
+        EditorGUILayout.PropertyField(timeScale);
+        component.timeScale = Math.Max(component.timeScale, 0);
+
+        //自己的编辑器
+        SkeletonAnimationInspector.enableEditorMode = EditorGUILayout.Toggle("Enable Anim Previewer", SkeletonAnimationInspector.enableEditorMode);
+        if (enableEditorMode) { 
                 EditorGUILayout.PropertyField(animPlayType);
 				if (animationIndex > 0) {
 						float animDuration = component.skeleton.Data.Animations [animationIndex - 1].Duration;
@@ -123,11 +125,11 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 						float time = Math.Max (component.currentAnimTime, 0);
 						float maxAnimTime = (float)(animDuration / component.timeScale);
 						component.currentAnimTime = GUILayout.HorizontalSlider (Math.Min (time, maxAnimTime), 0f, maxAnimTime);
-						if (component.currentAnimTime != lastMaxAnimTime) {
-								component.PlayTo ();
-								lastMaxAnimTime = component.currentAnimTime;
-								frame = (int)(component.currentAnimTime * 30 * component.timeScale);
-								
+						if (component.currentAnimTime != lastMaxAnimTime)
+                        {
+                            component.PlayTo ();
+                            lastMaxAnimTime = component.currentAnimTime;
+							frame = (int)(component.currentAnimTime * 30 * component.timeScale);
 						}
 						float reloadWidth = GUI.skin.label.CalcSize (new GUIContent ("Reload")).x + 20;
 						if (GUILayout.Button ("Reload", GUILayout.Width (reloadWidth))) {
@@ -139,7 +141,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 								}
 						}
 				}
-
+        }
 				//END
 
 		EditorGUILayout.Space();

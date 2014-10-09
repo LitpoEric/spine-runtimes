@@ -127,11 +127,10 @@ public class SkeletonAnimation : SkeletonRenderer {
 	public float currentAnimTime;
 	public void PlayTo(){
 		if (!valid) return;
-		
+            Debug.Log("目前运行在Editor模式");
 		Update((float)((skeleton.Time*-1)/timeScale+currentAnimTime));
-       // #if UNITY_EDITOR
+       
         LateUpdate ();
-      //  #endif
 	}
 
     public void UpdateToTime(float time)
