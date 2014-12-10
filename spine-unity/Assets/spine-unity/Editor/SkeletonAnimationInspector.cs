@@ -37,7 +37,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 {
     protected SerializedProperty animationName, loop, timeScale, currentAnimTime, animPlayType;
     protected bool isPrefab;
-    public static bool enableEditorMode=true;
+    public static bool enableEditorMode=false;
 	protected override void OnEnable ()
 	{
 		base.OnEnable ();
