@@ -31,17 +31,20 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(BoneFollower))]
-public class BoneFollowerInspector : Editor {
-	private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation;
-	BoneFollower component;
+[CustomEditor(typeof(BoneController))]
+public class BoneControllerInspector : Editor
+{
+    private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation, followPosition, mode;
+	BoneController component;
 
 	void OnEnable () {
 		skeletonRenderer = serializedObject.FindProperty("skeletonRenderer");
 		boneName = serializedObject.FindProperty("boneName");
 		followBoneRotation = serializedObject.FindProperty("followBoneRotation");
-		followZPosition = serializedObject.FindProperty("followZPosition");
-		component = (BoneFollower)target;
+        followZPosition = serializedObject.FindProperty("followZPosition");
+        followPosition = serializedObject.FindProperty("followPosition");
+        mode = serializedObject.FindProperty("mode");
+		component = (BoneController)target;
 		ForceReload();
 	}
 
@@ -90,8 +93,10 @@ public class BoneFollowerInspector : Editor {
 			boneIndex = EditorGUILayout.Popup(boneIndex, bones);
 			EditorGUILayout.EndHorizontal();
 
-			boneName.stringValue = boneIndex == 0 ? null : bones[boneIndex];
-			EditorGUILayout.PropertyField(followBoneRotation);
+            boneName.stringValue = boneIndex == 0 ? null : bones[boneIndex];
+            EditorGUILayout.PropertyField(mode);
+            EditorGUILayout.PropertyField(followBoneRotation);
+            EditorGUILayout.PropertyField(followPosition);
 			EditorGUILayout.PropertyField(followZPosition);
 		} else {
 			GUILayout.Label("INVALID");

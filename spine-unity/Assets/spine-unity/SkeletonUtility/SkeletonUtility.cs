@@ -108,7 +108,6 @@ public class SkeletonUtility : MonoBehaviour {
 			skeletonAnimation.UpdateLocal += UpdateLocal;
 		}
 
-
 		CollectBones();
 	}
 

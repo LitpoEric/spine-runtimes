@@ -36,18 +36,30 @@ using Spine;
 
 /// <summary>Sets a GameObject's transform to match a bone on a Spine skeleton.</summary>
 [ExecuteInEditMode]
-[AddComponentMenu("Spine/BoneFollower")]
-public class BoneFollower : MonoBehaviour {
-
+[AddComponentMenu("Spine/BoneController")]
+public class BoneController : MonoBehaviour {
+    public enum Mode
+    {
+        Follow,
+        Override
+    }
+    public Mode mode=Mode.Follow;
 	[System.NonSerialized]
-	public bool
-		valid;
-	public SkeletonRenderer skeletonRenderer;
+	public bool valid;
+    [HideInInspector]
+    public SkeletonAnimation skeletonRenderer;
 	public Bone bone;
-	public bool followZPosition = true;
-	public bool followBoneRotation = true;
+    public bool followZPosition = true;
+    //新增是否跟随postion
+    public bool followPosition = true;
+    public bool followBoneRotation = true;
+    [HideInInspector]
+    public bool transformLerpComplete;
 
-	public SkeletonRenderer SkeletonRenderer {
+
+
+    public SkeletonAnimation SkeletonRenderer
+    {
 		get { return skeletonRenderer; }
 		set {
 			skeletonRenderer = value;
@@ -81,12 +93,6 @@ public class BoneFollower : MonoBehaviour {
 			DoUpdate();
 	}
 
-	void OnDestroy () {
-		//cleanup
-		if (skeletonRenderer != null)
-			skeletonRenderer.OnReset -= HandleResetRenderer;
-	}
-
 	public void Awake () {
 		if (resetOnAwake)
 			Reset();
@@ -116,10 +122,10 @@ public class BoneFollower : MonoBehaviour {
 
 		Spine.Skeleton skeleton = skeletonRenderer.skeleton;
 		float flipRotation = (skeleton.flipX ^ skeleton.flipY) ? -1f : 1f;
-
+        if (mode == Mode.Follow) { 
 		if (cachedTransform.parent == skeletonTransform) {
-			cachedTransform.localPosition = new Vector3(bone.worldX, bone.worldY, followZPosition ? 0f : cachedTransform.localPosition.z);
-
+            if (followPosition) 
+            {  cachedTransform.localPosition = new Vector3(bone.worldX, bone.worldY, followZPosition ? 0f : cachedTransform.localPosition.z);   }
 			if (followBoneRotation) {
 				Vector3 rotation = cachedTransform.localRotation.eulerAngles;
 				cachedTransform.localRotation = Quaternion.Euler(rotation.x, rotation.y, bone.worldRotation * flipRotation);
@@ -129,15 +135,81 @@ public class BoneFollower : MonoBehaviour {
 			Vector3 targetWorldPosition = skeletonTransform.TransformPoint(new Vector3(bone.worldX, bone.worldY, 0f));
 			if (!followZPosition)
 				targetWorldPosition.z = cachedTransform.position.z;
-
-			cachedTransform.position = targetWorldPosition;
-
+            if (followPosition)
+            {  cachedTransform.position = targetWorldPosition;  }
 			if (followBoneRotation) {
 				Vector3 rotation = skeletonTransform.rotation.eulerAngles;
-
 				cachedTransform.rotation = Quaternion.Euler(rotation.x, rotation.y, skeletonTransform.rotation.eulerAngles.z + (bone.worldRotation * flipRotation));
 			}
 		}
+        }
+        else if (mode == Mode.Override)
+        {
+            if (transformLerpComplete)
+                return;         
+            //融合比例，原本应该是一个可以编辑的变量，现在似乎没有这个需求，所以赋值为1，不融合。
+            float overrideAlpha =1f;
+            if (followPosition)
+            {
+                    bone.worldX = Mathf.Lerp(bone.x, cachedTransform.localPosition.x, overrideAlpha);
+                    bone.worldY = Mathf.Lerp(bone.y, cachedTransform.localPosition.y, overrideAlpha);
+            }
 
+            if (followBoneRotation)
+            {
+                    float angle = Mathf.LerpAngle(bone.Rotation, cachedTransform.localRotation.eulerAngles.z, overrideAlpha);
+                    bone.Rotation = angle;
+            }
+        }
 	}
+
+    void UpdateLocal(SkeletonAnimation anim)
+    { 
+           transformLerpComplete = false; 
+            DoUpdate();
+    }
+
+    void UpdateWorld(SkeletonAnimation anim)
+    {
+         DoUpdate();
+    }
+
+    void UpdateComplete(SkeletonAnimation anim)
+    {
+         DoUpdate();
+    }
+
+   
+    void OnEnable()
+    {
+        //if (skeletonAnimation == null)
+        //{
+        //    skeletonAnimation = GetComponent<SkeletonAnimation>();
+        //}
+
+        if (skeletonRenderer != null)
+        {
+            skeletonRenderer.OnReset -= HandleResetRenderer;
+            skeletonRenderer.OnReset += HandleResetRenderer;
+            skeletonRenderer.UpdateLocal -= UpdateLocal;
+            skeletonRenderer.UpdateLocal += UpdateLocal;
+            skeletonRenderer.UpdateWorld -= UpdateWorld;
+            skeletonRenderer.UpdateWorld += UpdateWorld;
+            skeletonRenderer.UpdateComplete -= UpdateComplete;
+            skeletonRenderer.UpdateComplete += UpdateComplete;
+
+        }
+    }
+
+    void OnDisable()
+    {
+        if (skeletonRenderer != null)
+        {
+            skeletonRenderer.OnReset -= HandleResetRenderer;
+            skeletonRenderer.UpdateLocal -= UpdateLocal;
+            skeletonRenderer.UpdateWorld -= UpdateWorld;
+            skeletonRenderer.UpdateComplete -= UpdateComplete;
+        }
+    }
+
 }

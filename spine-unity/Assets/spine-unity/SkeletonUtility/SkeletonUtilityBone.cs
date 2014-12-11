@@ -51,7 +51,6 @@ public class SkeletonUtilityBone : MonoBehaviour {
 
 	[System.NonSerialized]
 	public bool valid;
-	[System.NonSerialized]
 	public SkeletonUtility skeletonUtility;
 	[System.NonSerialized]
 	public Bone bone;
@@ -96,8 +95,6 @@ public class SkeletonUtilityBone : MonoBehaviour {
 	}
 
 	void OnEnable () {
-		skeletonUtility = SkeletonUtility.GetInParent<SkeletonUtility>(transform);
-
 		if (skeletonUtility == null)
 			return;
 
@@ -119,7 +116,6 @@ public class SkeletonUtilityBone : MonoBehaviour {
 	}
 
 	public void DoUpdate () {
-
 		if (!valid) {
 			Reset();
 			return;
