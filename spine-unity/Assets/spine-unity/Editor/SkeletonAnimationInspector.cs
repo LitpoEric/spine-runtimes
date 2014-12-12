@@ -52,7 +52,13 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 
 
 	}
-
+    //启动游戏关闭动画预览模式
+    void Start()
+    {
+        SkeletonAnimation component = (SkeletonAnimation)target;
+        enableEditorMode = false;
+        component.animPlayType = SkeletonAnimation.AnimPlayType.SpineAnimation;
+    }
 
 		protected override void gui ()
 		{
@@ -106,7 +112,7 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 
         //自己的编辑器
         SkeletonAnimationInspector.enableEditorMode = EditorGUILayout.Toggle("Enable Anim Previewer", SkeletonAnimationInspector.enableEditorMode);
-        if (enableEditorMode) { 
+        if (enableEditorMode) {
                 EditorGUILayout.PropertyField(animPlayType);
 				if (animationIndex > 0) {
 						float animDuration = component.skeleton.Data.Animations [animationIndex - 1].Duration;
@@ -141,6 +147,9 @@ public class SkeletonAnimationInspector : SkeletonRendererInspector
 								}
 						}
 				}
+        }
+        else {
+            component.animPlayType=  SkeletonAnimation.AnimPlayType.SpineAnimation;
         }
 				//END
 
