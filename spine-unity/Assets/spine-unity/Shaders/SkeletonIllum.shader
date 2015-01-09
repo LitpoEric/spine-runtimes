@@ -5,7 +5,7 @@
 		_Cutoff ("Shadow alpha cutoff", Range(0,1)) = 0.1
 		_MainTex ("Texture to blend", 2D) = "black" {}
 		_IllumTex ("Texture to Illum", 2D) = "black" {}
-		_AlphaColor ("Main Color", Color) = (1,1,1,1)
+		_AlphaColor ("AlphaColor", Color) = (1,1,1,1)
 	}
 	// 2 texture stage GPUs
 	SubShader {

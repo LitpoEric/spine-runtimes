@@ -132,7 +132,13 @@ public class SkeletonAnimation : SkeletonRenderer {
        
         LateUpdate ();
 	}
-
+    //在编辑器模式下刷新对象状态，播放动画
+    void OnDrawGizmos()
+    {
+        if (!Application.isPlaying) {
+        PlayTo();
+        }
+    }
     public void UpdateToTime(float time)
     {
         if (!valid) return;
