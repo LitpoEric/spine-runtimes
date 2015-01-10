@@ -36,7 +36,7 @@ public class BoneControllerInspector : Editor
 {
     private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation, followPosition, mode;
 	BoneController component;
-
+    string regx;//匹配规则字符串
 	void OnEnable () {
 		skeletonRenderer = serializedObject.FindProperty("skeletonRenderer");
 		boneName = serializedObject.FindProperty("boneName");
@@ -85,6 +85,9 @@ public class BoneControllerInspector : Editor
 			for (int i = 0; i < bones.Length - 1; i++)
 				bones[i + 1] = component.skeletonRenderer.skeleton.Data.Bones[i].Name;
 			Array.Sort<String>(bones);
+            //根据搜索规则过滤骨骼列表
+            bones = filterStrings(bones, regx);
+
 			int boneIndex = Math.Max(0, Array.IndexOf(bones, boneName.stringValue));
 
 			EditorGUILayout.BeginHorizontal();
@@ -92,7 +95,8 @@ public class BoneControllerInspector : Editor
 			EditorGUIUtility.LookLikeControls();
 			boneIndex = EditorGUILayout.Popup(boneIndex, bones);
 			EditorGUILayout.EndHorizontal();
-
+            //添加搜索规则输入框
+            regx = EditorGUILayout.TextField("匹配查询规则", regx);
             boneName.stringValue = boneIndex == 0 ? null : bones[boneIndex];
             EditorGUILayout.PropertyField(mode);
             EditorGUILayout.PropertyField(followBoneRotation);
@@ -108,4 +112,14 @@ public class BoneControllerInspector : Editor
 			component.Reset();
 		}
 	}
+    //根据规则匹配字符
+    string[] filterStrings(string[] old, string regx)
+    {
+        if (old == null || old.Length == 1) { return old; }
+        System.Collections.Generic.List<string> ss = new System.Collections.Generic.List<string>();
+        ss.Add("<None>");
+        foreach (string o in old)
+        {  if (o.ToUpper().Contains(regx.ToUpper())) { ss.Add(o); }   }
+        return ss.ToArray();
+    }
 }
