@@ -42,8 +42,8 @@ namespace Spine {
 		private AttachmentLoader attachmentLoader;
 		public float Scale { get; set; }
 
-		public SkeletonJson (Atlas atlas)
-			: this(new AtlasAttachmentLoader(atlas)) {
+		public SkeletonJson (params Atlas[] atlasArray)
+			: this(new AtlasAttachmentLoader(atlasArray)) {
 		}
 
 		public SkeletonJson (AttachmentLoader attachmentLoader) {
@@ -588,7 +588,8 @@ namespace Spine {
 							while (originalIndex != slotIndex)
 								unchanged[unchangedIndex++] = originalIndex++;
 							// Set changed items.
-							drawOrder[originalIndex + (int)(float)offsetMap["offset"]] = originalIndex++;
+							int index = originalIndex + (int)(float)offsetMap["offset"];
+							drawOrder[index] = originalIndex++;
 						}
 						// Collect remaining unchanged items.
 						while (originalIndex < slotCount)

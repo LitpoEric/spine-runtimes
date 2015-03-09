@@ -168,7 +168,7 @@ public class SkeletonUtilityBone : MonoBehaviour {
 			}
 
 			if (scale) {
-				cachedTransform.localScale = new Vector3(bone.scaleX, bone.scaleY, 1);
+				cachedTransform.localScale = new Vector3(bone.scaleX, bone.scaleY, bone.worldFlipX ? -1 : 1);
 
 				nonUniformScaleWarning = (bone.scaleX != bone.scaleY);
 			}
@@ -202,6 +202,7 @@ public class SkeletonUtilityBone : MonoBehaviour {
 						}
 
 						bone.Rotation = angle;
+						bone.RotationIK = angle;
 					}
 
 					if (scale) {
@@ -241,6 +242,7 @@ public class SkeletonUtilityBone : MonoBehaviour {
 						}
 
 						bone.Rotation = angle;
+						bone.RotationIK = angle;
 					}
 
 					//TODO: Something about this

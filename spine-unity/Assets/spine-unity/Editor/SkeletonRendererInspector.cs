@@ -28,20 +28,35 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(SkeletonRenderer))]
 public class SkeletonRendererInspector : Editor {
-	protected SerializedProperty skeletonDataAsset, initialSkinName, normals, tangents, meshes, immutableTriangles;
+	protected SerializedProperty skeletonDataAsset, initialSkinName, normals, tangents, meshes, immutableTriangles, submeshSeparators, front;
+	protected bool advancedFoldout;
+
+	private static MethodInfo EditorGUILayoutSortingLayerField;
+	protected SerializedObject rendererSerializedObject;
+	protected SerializedProperty sortingLayerIDProperty;
 
 	protected virtual void OnEnable () {
+		SpineEditorUtilities.ConfirmInitialization();
 		skeletonDataAsset = serializedObject.FindProperty("skeletonDataAsset");
 		initialSkinName = serializedObject.FindProperty("initialSkinName");
 		normals = serializedObject.FindProperty("calculateNormals");
 		tangents = serializedObject.FindProperty("calculateTangents");
 		meshes = serializedObject.FindProperty("renderMeshes");
 		immutableTriangles = serializedObject.FindProperty("immutableTriangles");
+		submeshSeparators = serializedObject.FindProperty("submeshSeparators");
+		front = serializedObject.FindProperty("frontFacing");
+
+		if(EditorGUILayoutSortingLayerField == null)
+			EditorGUILayoutSortingLayerField = typeof(EditorGUILayout).GetMethod("SortingLayerField", BindingFlags.Static | BindingFlags.NonPublic, null, new Type[] { typeof(GUIContent), typeof(SerializedProperty), typeof(GUIStyle) }, null);
+
+		rendererSerializedObject = new SerializedObject(((SkeletonRenderer)target).GetComponent<Renderer>());
+		sortingLayerIDProperty = rendererSerializedObject.FindProperty("m_SortingLayerID");
 	}
 
 	protected virtual void gui () {
@@ -52,8 +67,11 @@ public class SkeletonRendererInspector : Editor {
 		float reloadWidth = GUI.skin.label.CalcSize(new GUIContent("Reload")).x + 20;
 		if (GUILayout.Button("Reload", GUILayout.Width(reloadWidth))) {
 			if (component.skeletonDataAsset != null) {
-				if (component.skeletonDataAsset.atlasAsset != null)
-					component.skeletonDataAsset.atlasAsset.Reset();
+				foreach (AtlasAsset aa in component.skeletonDataAsset.atlasAssets) {
+					if (aa != null)
+						aa.Reset();
+				}
+				
 				component.skeletonDataAsset.Reset();
 			}
 			component.Reset();
@@ -77,21 +95,50 @@ public class SkeletonRendererInspector : Editor {
 				if (name == initialSkinName.stringValue)
 					skinIndex = i;
 			}
-			
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField("Initial Skin", GUILayout.Width(EditorGUIUtility.labelWidth));
-			skinIndex = EditorGUILayout.Popup(skinIndex, skins);
-			EditorGUILayout.EndHorizontal();
-			
+
+			skinIndex = EditorGUILayout.Popup("Initial Skin", skinIndex, skins);			
 			initialSkinName.stringValue = skins[skinIndex];
 		}
-		
-		EditorGUILayout.PropertyField(meshes,
-			new GUIContent("Render Meshes", "Disable to optimize rendering for skeletons that don't use meshes"));
-		EditorGUILayout.PropertyField(immutableTriangles,
-			new GUIContent("Immutable Triangles", "Enable to optimize rendering for skeletons that never change attachment visbility"));
-		EditorGUILayout.PropertyField(normals);
-		EditorGUILayout.PropertyField(tangents);
+
+		EditorGUILayout.Space();
+
+		// Sorting Layers
+		{
+			var renderer = component.GetComponent<Renderer>();
+			if(renderer != null) {
+				EditorGUI.BeginChangeCheck();
+
+				if(EditorGUILayoutSortingLayerField != null && sortingLayerIDProperty != null) {
+					EditorGUILayoutSortingLayerField.Invoke(null, new object[] { new GUIContent("Sorting Layer"), sortingLayerIDProperty, EditorStyles.popup } );
+				} else {
+					renderer.sortingLayerID = EditorGUILayout.IntField("Sorting Layer ID", renderer.sortingLayerID);
+				}
+
+				renderer.sortingOrder = EditorGUILayout.IntField("Order in Layer", renderer.sortingOrder);
+
+				if(EditorGUI.EndChangeCheck()) {
+					rendererSerializedObject.ApplyModifiedProperties();
+					EditorUtility.SetDirty(renderer);
+				}
+			}
+		}
+
+		// More Render Options...
+		{
+			advancedFoldout = EditorGUILayout.Foldout(advancedFoldout, "Advanced");
+			if(advancedFoldout) {
+				EditorGUI.indentLevel++;
+				EditorGUILayout.PropertyField(meshes,
+					new GUIContent("Render Meshes", "Disable to optimize rendering for skeletons that don't use meshes"));
+				EditorGUILayout.PropertyField(immutableTriangles,
+					new GUIContent("Immutable Triangles", "Enable to optimize rendering for skeletons that never change attachment visbility"));
+				EditorGUILayout.PropertyField(normals);
+				EditorGUILayout.PropertyField(tangents);
+				EditorGUILayout.PropertyField(front);
+				EditorGUILayout.PropertyField(submeshSeparators, true);
+				EditorGUI.indentLevel--;
+			}
+		}
 	}
 
 	override public void OnInspectorGUI () {
@@ -104,4 +151,5 @@ public class SkeletonRendererInspector : Editor {
 				((SkeletonRenderer)target).Reset();
 		}
 	}
+
 }

@@ -202,6 +202,9 @@ namespace Spine {
 			float y = curves[i - 1];
 			return y + (1 - y) * (percent - x) / (1 - x); // Last point is 1,1.
 		}
+		public float GetCurveType (int frameIndex) {
+			return curves[frameIndex * BEZIER_SIZE];
+		}
 	}
 
 	public class RotateTimeline : CurveTimeline {
@@ -580,8 +583,8 @@ namespace Spine {
 			if (vertices.Length < vertexCount) {
 				vertices = new float[vertexCount];
 				slot.attachmentVertices = vertices;
-			} else if (vertices.Length > vertexCount)
-				alpha = 1; // Don't mix from uninitialized slot vertices.
+			}
+			if (vertices.Length != vertexCount) alpha = 1; // Don't mix from uninitialized slot vertices.
 			slot.attachmentVerticesCount = vertexCount;
 
 			if (time >= frames[frames.Length - 1]) { // Time is after last frame.
