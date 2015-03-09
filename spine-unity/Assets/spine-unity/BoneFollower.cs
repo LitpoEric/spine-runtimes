@@ -36,25 +36,67 @@ using Spine;
 
 /// <summary>Sets a GameObject's transform to match a bone on a Spine skeleton.</summary>
 [ExecuteInEditMode]
-[AddComponentMenu("Spine/BoneController")]
-public class BoneController : BoneFollower{
-    public enum Mode
-    {
-        Follow,
-        Override
-    }
-    public Mode mode=Mode.Follow;
+[AddComponentMenu("Spine/BoneFollower")]
+public class BoneFollower : MonoBehaviour {
+
 	[System.NonSerialized]
-	public bool valid;
+	public bool
+		valid;
+	public SkeletonRenderer skeletonRenderer;
 	public Bone bone;
-    //新增是否跟随postion
-    public bool followPosition = true;
-    [HideInInspector]
-    public bool transformLerpComplete;
+	public bool followZPosition = true;
+	public bool followBoneRotation = true;
+
+	public SkeletonRenderer SkeletonRenderer {
+		get { return skeletonRenderer; }
+		set {
+			skeletonRenderer = value;
+			Reset();
+		}
+	}
 
 
+	/// <summary>If a bone isn't set, boneName is used to find the bone.</summary>
+	public String boneName;
+	public bool resetOnAwake = true;
+	protected Transform cachedTransform;
+	protected Transform skeletonTransform;
 
-	public new void DoUpdate () {
+	public void HandleResetRenderer (SkeletonRenderer skeletonRenderer) {
+		Reset();
+	}
+
+	public void Reset () {
+		bone = null;
+		cachedTransform = transform;
+		valid = skeletonRenderer != null && skeletonRenderer.valid;
+		if (!valid)
+			return;
+		skeletonTransform = skeletonRenderer.transform;
+
+		skeletonRenderer.OnReset -= HandleResetRenderer;
+		skeletonRenderer.OnReset += HandleResetRenderer;
+
+		if (Application.isEditor)
+			DoUpdate();
+	}
+
+	void OnDestroy () {
+		//cleanup
+		if (skeletonRenderer != null)
+			skeletonRenderer.OnReset -= HandleResetRenderer;
+	}
+
+	public void Awake () {
+		if (resetOnAwake)
+			Reset();
+	}
+
+	void LateUpdate () {
+		DoUpdate();
+	}
+
+	public void DoUpdate () {
 		if (!valid) {
 			Reset();
 			return;
@@ -74,53 +116,28 @@ public class BoneController : BoneFollower{
 
 		Spine.Skeleton skeleton = skeletonRenderer.skeleton;
 		float flipRotation = (skeleton.flipX ^ skeleton.flipY) ? -1f : 1f;
-        if (mode == Mode.Follow) {
 
-            if (cachedTransform.parent == skeletonTransform)
-            {
-                cachedTransform.localPosition = new Vector3(bone.worldX, bone.worldY, followZPosition ? 0f : cachedTransform.localPosition.z);
+		if (cachedTransform.parent == skeletonTransform) {
+			cachedTransform.localPosition = new Vector3(bone.worldX, bone.worldY, followZPosition ? 0f : cachedTransform.localPosition.z);
 
-                if (followBoneRotation)
-                {
-                    Vector3 rotation = cachedTransform.localRotation.eulerAngles;
-                    cachedTransform.localRotation = Quaternion.Euler(rotation.x, rotation.y, bone.worldRotation * flipRotation);
-                }
+			if (followBoneRotation) {
+				Vector3 rotation = cachedTransform.localRotation.eulerAngles;
+				cachedTransform.localRotation = Quaternion.Euler(rotation.x, rotation.y, bone.worldRotation * flipRotation);
+			}
 
-            }
-            else
-            {
-                Vector3 targetWorldPosition = skeletonTransform.TransformPoint(new Vector3(bone.worldX, bone.worldY, 0f));
-                if (!followZPosition)
-                    targetWorldPosition.z = cachedTransform.position.z;
+		} else {
+			Vector3 targetWorldPosition = skeletonTransform.TransformPoint(new Vector3(bone.worldX, bone.worldY, 0f));
+			if (!followZPosition)
+				targetWorldPosition.z = cachedTransform.position.z;
 
-                cachedTransform.position = targetWorldPosition;
+			cachedTransform.position = targetWorldPosition;
 
-                if (followBoneRotation)
-                {
-                    Vector3 rotation = skeletonTransform.rotation.eulerAngles;
+			if (followBoneRotation) {
+				Vector3 rotation = skeletonTransform.rotation.eulerAngles;
 
-                    cachedTransform.rotation = Quaternion.Euler(rotation.x, rotation.y, skeletonTransform.rotation.eulerAngles.z + (bone.worldRotation * flipRotation));
-                }
+				cachedTransform.rotation = Quaternion.Euler(rotation.x, rotation.y, skeletonTransform.rotation.eulerAngles.z + (bone.worldRotation * flipRotation));
+			}
 		}
-        }
-        else if (mode == Mode.Override)
-        {
-            if (transformLerpComplete)
-                return;         
-            //融合比例，原本应该是一个可以编辑的变量，现在似乎没有这个需求，所以赋值为1，不融合。
-            float overrideAlpha =1f;
-            if (followPosition)
-            {
-                    bone.worldX = Mathf.Lerp(bone.x, cachedTransform.localPosition.x, overrideAlpha);
-                    bone.worldY = Mathf.Lerp(bone.y, cachedTransform.localPosition.y, overrideAlpha);
-            }
 
-            if (followBoneRotation)
-            {
-                    float angle = Mathf.LerpAngle(bone.Rotation, cachedTransform.localRotation.eulerAngles.z, overrideAlpha);
-                    bone.Rotation = angle;
-            }
-        }
 	}
-
 }

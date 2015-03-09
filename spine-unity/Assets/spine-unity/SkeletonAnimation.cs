@@ -44,10 +44,6 @@ public class SkeletonAnimation : SkeletonRenderer, ISkeletonAnimation {
 
     public AnimPlayType animPlayType = AnimPlayType.SpineAnimation;
     public enum AnimPlayType {UnityAnimation,SpineAnimation,Onion}
-    
-
-	//public delegate void UpdateBonesDelegate (SkeletonAnimation skeleton);
-
 
 
 	public event UpdateBonesDelegate UpdateLocal {
@@ -145,7 +141,6 @@ public class SkeletonAnimation : SkeletonRenderer, ISkeletonAnimation {
 	public float currentAnimTime;
 	public void PlayTo(){
 		if (!valid) return;
-            Debug.Log("目前运行在Editor模式");
 		Update((float)((skeleton.Time*-1)/timeScale+currentAnimTime));
        
         LateUpdate ();
@@ -164,20 +159,21 @@ public class SkeletonAnimation : SkeletonRenderer, ISkeletonAnimation {
         state.UpdateToTime(time);
         state.Apply(skeleton);
 
-        if (UpdateLocal != null)
-            UpdateLocal(this);
+        if (_UpdateLocal != null)
+            _UpdateLocal(this);
 
         skeleton.UpdateWorldTransform();
 
-        if (UpdateWorld != null)
+
+        if (_UpdateWorld != null)
         {
-            UpdateWorld(this);
+            _UpdateWorld(this);
             skeleton.UpdateWorldTransform();
         }
 
-        if (UpdateComplete != null)
+        if (_UpdateComplete != null)
         {
-            UpdateComplete(this);
+            _UpdateComplete(this);
         }
     }
 }
