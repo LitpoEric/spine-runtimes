@@ -1,13 +1,14 @@
-﻿Shader "Spine/Skeleton Illum" {
+﻿Shader "Spine/Skeleton IllumGlow" {
 	Properties {
 		_Color ("Main Color", Color) = (1,1,1,1)
 		_MainTex ("Texture to blend", 2D) = "black" {}
+		_GlowTex ("Glow Texture", 2D) = "white" {}
 		_IllumTex ("Texture to Illum", 2D) = "black" {}
 		_AlphaColor ("AlphaColor", Color) = (1,1,1,1)
 	}
 	// 2 texture stage GPUs
 	SubShader {
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Glow"}
 		LOD 100
 
 		Cull Off
@@ -43,7 +44,7 @@
 	}
 	// 1 texture stage GPUs
 	SubShader {
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
+		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Glow"  }
 		LOD 100
 
 		Cull Off
@@ -59,4 +60,6 @@
 			}
 		}
 	}
+
+	CustomEditor "GlowMaterialInspector"
 }

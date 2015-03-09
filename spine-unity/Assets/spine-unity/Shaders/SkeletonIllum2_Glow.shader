@@ -1,10 +1,10 @@
-Shader "Spine/Skeleton Illum2"
+Shader "Spine/Skeleton Illum2Glow"
 {
 	Properties
 	{
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Main Texture", 2D) = "white" {}
-		_IllumTex ("Texture to Illum", 2D) = "black" {}
+		_GlowTex ("Glow Texture", 2D) = "black" {}
 		_AlphaColor ("Alpha Color", Color) = (1,1,1,1)
 		_IllumStrength ("Illum Strength", Range(0,1)) = 1
 	}
@@ -15,7 +15,7 @@ Shader "Spine/Skeleton Illum2"
 		{ 
 			"Queue"="Transparent" 
 			"IgnoreProjector"="True" 
-			"RenderType"="Transparent" 
+			"RenderType"="Glow" 
 			"PreviewType"="Plane"
 			"CanUseSpriteAtlas"="True"
 		}
@@ -31,7 +31,7 @@ Shader "Spine/Skeleton Illum2"
 		#pragma surface surf Lambert  vertex:vert noforwardadd approxview halfasview alpha
 		fixed4 _Color;
 		sampler2D _MainTex;
-		sampler2D _IllumTex;
+		sampler2D _GlowTex;
 		uniform fixed4 _AlphaColor;
 		float _IllumStrength;
 
@@ -54,8 +54,8 @@ Shader "Spine/Skeleton Illum2"
 		{
 			fixed4 c=  tex2D(_MainTex, IN.uv_MainTex);
 			//混合顶点颜色
-			c.rgb =  IN.color.rgb*IN.color.a+c.rgb*(1-IN.color.a);
-			fixed3 illumC = tex2D(_IllumTex, IN.uv_MainTex)* IN.color;
+			
+			fixed3 illumC = tex2D(_GlowTex, IN.uv_MainTex)* IN.color;
 			fixed3 calC=c.rgb;
 			//混合亮度底色
 			calC = _AlphaColor.rgb*_AlphaColor.a+calC.rgb*(1-_AlphaColor.a);
@@ -63,6 +63,16 @@ Shader "Spine/Skeleton Illum2"
 			calC = calC.rgb*c.rgb*1.5;
 			//盖上颜色
 			calC =  _Color.rgb*_Color.a+calC.rgb*(1-_Color.a);
+			//调整发光亮度
+			illumC=illumC*0.75f;//_IllumStrength
+
+			//混合顶点颜色
+			illumC.rgb=illumC.rgb*(1-IN.color.a)+IN.color.rgb*IN.color.a;
+			
+			////混合顶点颜色
+			//calC.rgb=calC.rgb*(1-IN.color.a)+IN.color.rgb*IN.color.a;
+			illumC =illumC.rgb*(1-IN.color.a)+IN.color.rgb*IN.color.a;
+			
 			//相加获得亮度
 			o.Emission = illumC*0.75f;
 			//素材漫反射颜色
@@ -72,5 +82,6 @@ Shader "Spine/Skeleton Illum2"
 		ENDCG
 	}
 
+	CustomEditor "GlowMaterialInspector"
 //Fallback "Transparent/VertexLit"
 }

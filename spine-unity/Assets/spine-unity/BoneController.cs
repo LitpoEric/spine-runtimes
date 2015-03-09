@@ -50,7 +50,7 @@ public class BoneController : MonoBehaviour {
     public SkeletonAnimation skeletonRenderer;
 	public Bone bone;
     public bool followZPosition = true;
-    //ĞÂÔöÊÇ·ñ¸úËæpostion
+    //æ–°å¢æ˜¯å¦è·Ÿéšpostion
     public bool followPosition = true;
     public bool followBoneRotation = true;
     [HideInInspector]
@@ -147,7 +147,7 @@ public class BoneController : MonoBehaviour {
         {
             if (transformLerpComplete)
                 return;         
-            //ÈÚºÏ±ÈÀı£¬Ô­±¾Ó¦¸ÃÊÇÒ»¸ö¿ÉÒÔ±à¼­µÄ±äÁ¿£¬ÏÖÔÚËÆºõÃ»ÓĞÕâ¸öĞèÇó£¬ËùÒÔ¸³ÖµÎª1£¬²»ÈÚºÏ¡£
+            //èåˆæ¯”ä¾‹ï¼ŒåŸæœ¬åº”è¯¥æ˜¯ä¸€ä¸ªå¯ä»¥ç¼–è¾‘çš„å˜é‡ï¼Œç°åœ¨ä¼¼ä¹æ²¡æœ‰è¿™ä¸ªéœ€æ±‚ï¼Œæ‰€ä»¥èµ‹å€¼ä¸º1ï¼Œä¸èåˆã€‚
             float overrideAlpha =1f;
             if (followPosition)
             {

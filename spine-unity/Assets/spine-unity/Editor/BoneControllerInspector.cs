@@ -36,7 +36,7 @@ public class BoneControllerInspector : Editor
 {
     private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation, followPosition, mode;
 	BoneController component;
-    string regx;//Æ¥Åä¹æÔò×Ö·û´®
+    string regx;//åŒ¹é…è§„åˆ™å­—ç¬¦ä¸²
 	void OnEnable () {
 		skeletonRenderer = serializedObject.FindProperty("skeletonRenderer");
 		boneName = serializedObject.FindProperty("boneName");
@@ -85,7 +85,7 @@ public class BoneControllerInspector : Editor
 			for (int i = 0; i < bones.Length - 1; i++)
 				bones[i + 1] = component.skeletonRenderer.skeleton.Data.Bones[i].Name;
 			Array.Sort<String>(bones);
-            //¸ù¾İËÑË÷¹æÔò¹ıÂË¹Ç÷ÀÁĞ±í
+            //æ ¹æ®æœç´¢è§„åˆ™è¿‡æ»¤éª¨éª¼åˆ—è¡¨
             bones = filterStrings(bones, regx);
 
 			int boneIndex = Math.Max(0, Array.IndexOf(bones, boneName.stringValue));
@@ -95,8 +95,8 @@ public class BoneControllerInspector : Editor
 			EditorGUIUtility.LookLikeControls();
 			boneIndex = EditorGUILayout.Popup(boneIndex, bones);
 			EditorGUILayout.EndHorizontal();
-            //Ìí¼ÓËÑË÷¹æÔòÊäÈë¿ò
-            regx = EditorGUILayout.TextField("Æ¥Åä²éÑ¯¹æÔò", regx);
+            //æ·»åŠ æœç´¢è§„åˆ™è¾“å…¥æ¡†
+            regx = EditorGUILayout.TextField("åŒ¹é…æŸ¥è¯¢è§„åˆ™", regx);
             boneName.stringValue = boneIndex == 0 ? null : bones[boneIndex];
             EditorGUILayout.PropertyField(mode);
             EditorGUILayout.PropertyField(followBoneRotation);
@@ -112,7 +112,7 @@ public class BoneControllerInspector : Editor
 			component.Reset();
 		}
 	}
-    //¸ù¾İ¹æÔòÆ¥Åä×Ö·û
+    //æ ¹æ®è§„åˆ™åŒ¹é…å­—ç¬¦
     string[] filterStrings(string[] old, string regx)
     {
         if (old == null || old.Length == 1) { return old; }

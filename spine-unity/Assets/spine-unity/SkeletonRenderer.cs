@@ -72,6 +72,9 @@ public class SkeletonRenderer : MonoBehaviour {
 	private readonly List<Material> submeshMaterials = new List<Material>();
 	private readonly List<Submesh> submeshes = new List<Submesh>();
 
+    //是否使用顶点色
+    public bool useVerticsColor = false;
+    public Color32 verticsColor;
 
 	public virtual void Reset () {
 		if (meshFilter != null)
@@ -266,12 +269,17 @@ public class SkeletonRenderer : MonoBehaviour {
 				vertices[vertexIndex + 2] = new Vector3(tempVertices[RegionAttachment.X2], tempVertices[RegionAttachment.Y2], z);
 				vertices[vertexIndex + 3] = new Vector3(tempVertices[RegionAttachment.X3], tempVertices[RegionAttachment.Y3], z);
 
+                 if (!useVerticsColor)
+                {
 				color.a = (byte)(a * slot.a * regionAttachment.a);
 				color.r = (byte)(r * slot.r * regionAttachment.r * color.a);
 				color.g = (byte)(g * slot.g * regionAttachment.g * color.a);
 				color.b = (byte)(b * slot.b * regionAttachment.b * color.a);
 				if (slot.data.additiveBlending)
-					color.a = 0;
+                    color.a = 0;
+                }
+                 else { color = verticsColor; }
+
 				colors[vertexIndex] = color;
 				colors[vertexIndex + 1] = color;
 				colors[vertexIndex + 2] = color;
@@ -294,12 +302,16 @@ public class SkeletonRenderer : MonoBehaviour {
 						this.tempVertices = tempVertices = new float[meshVertexCount];
 					meshAttachment.ComputeWorldVertices(slot, tempVertices);
 
+                       if (!useVerticsColor)
+                    {
 					color.a = (byte)(a * slot.a * meshAttachment.a);
 					color.r = (byte)(r * slot.r * meshAttachment.r * color.a);
 					color.g = (byte)(g * slot.g * meshAttachment.g * color.a);
 					color.b = (byte)(b * slot.b * meshAttachment.b * color.a);
 					if (slot.data.additiveBlending)
 						color.a = 0;
+                    }
+                       else { color = verticsColor; }
 
 					float[] meshUVs = meshAttachment.uvs;
 					float z = i * zSpacing;
@@ -315,12 +327,16 @@ public class SkeletonRenderer : MonoBehaviour {
 						this.tempVertices = tempVertices = new float[meshVertexCount];
 					meshAttachment.ComputeWorldVertices(slot, tempVertices);
 
+                    if (!useVerticsColor)
+                    {
 					color.a = (byte)(a * slot.a * meshAttachment.a);
 					color.r = (byte)(r * slot.r * meshAttachment.r * color.a);
 					color.g = (byte)(g * slot.g * meshAttachment.g * color.a);
 					color.b = (byte)(b * slot.b * meshAttachment.b * color.a);
 					if (slot.data.additiveBlending)
 						color.a = 0;
+                    }
+                    else { color = verticsColor; }
 
 					float[] meshUVs = meshAttachment.uvs;
 					float z = i * zSpacing;
