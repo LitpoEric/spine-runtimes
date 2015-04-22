@@ -31,95 +31,87 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(BoneController))]
-public class BoneControllerInspector : Editor
+[CustomEditor(typeof(BoneFollower))]
+public class BoneFollowerInspector : Editor
 {
-    private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation, followPosition, mode;
-	BoneController component;
-    string regx;//匹配规则字符串
-	void OnEnable () {
-		skeletonRenderer = serializedObject.FindProperty("skeletonRenderer");
-		boneName = serializedObject.FindProperty("boneName");
-		followBoneRotation = serializedObject.FindProperty("followBoneRotation");
-        followZPosition = serializedObject.FindProperty("followZPosition");
-        followPosition = serializedObject.FindProperty("followPosition");
-        mode = serializedObject.FindProperty("mode");
-		component = (BoneController)target;
-		ForceReload();
-	}
+    private SerializedProperty boneName, skeletonRenderer, followZPosition, followBoneRotation;
+    BoneFollower component;
+    bool needsReset;
 
-	void FindRenderer () {
-		if (skeletonRenderer.objectReferenceValue == null) {
-			SkeletonRenderer parentRenderer = SkeletonUtility.GetInParent<SkeletonRenderer>(component.transform);
-
-			if (parentRenderer != null) {
-				skeletonRenderer.objectReferenceValue = (UnityEngine.Object)parentRenderer;
-			}
-
-		}
-	}
-
-	void ForceReload () {
-		if (component.skeletonRenderer != null) {
-			if (component.skeletonRenderer.valid == false)
-				component.skeletonRenderer.Reset();
-		}
-	}
-
-	override public void OnInspectorGUI () {
-		serializedObject.Update();
-
-		FindRenderer();
-
-		EditorGUILayout.PropertyField(skeletonRenderer);
-
-		if (component.valid) {
-			String[] bones = new String[1];
-			try {
-				bones = new String[component.skeletonRenderer.skeleton.Data.Bones.Count + 1];
-			} catch {
-
-			}
-
-			bones[0] = "<None>";
-			for (int i = 0; i < bones.Length - 1; i++)
-				bones[i + 1] = component.skeletonRenderer.skeleton.Data.Bones[i].Name;
-			Array.Sort<String>(bones);
-            //根据搜索规则过滤骨骼列表
-            bones = filterStrings(bones, regx);
-
-			int boneIndex = Math.Max(0, Array.IndexOf(bones, boneName.stringValue));
-
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField("Bone");
-			EditorGUIUtility.LookLikeControls();
-			boneIndex = EditorGUILayout.Popup(boneIndex, bones);
-			EditorGUILayout.EndHorizontal();
-            //添加搜索规则输入框
-            regx = EditorGUILayout.TextField("匹配查询规则", regx);
-            boneName.stringValue = boneIndex == 0 ? null : bones[boneIndex];
-            EditorGUILayout.PropertyField(mode);
-            EditorGUILayout.PropertyField(followBoneRotation);
-            EditorGUILayout.PropertyField(followPosition);
-			EditorGUILayout.PropertyField(followZPosition);
-		} else {
-			GUILayout.Label("INVALID");
-		}
-
-		if (serializedObject.ApplyModifiedProperties() ||
-			(Event.current.type == EventType.ValidateCommand && Event.current.commandName == "UndoRedoPerformed")
-	    ) {
-			component.Reset();
-		}
-	}
-    //根据规则匹配字符
-    string[] filterStrings(string[] old, string regx)
+    void OnEnable()
     {
-        if (old == null || old.Length == 1) { return old; }
-        System.Collections.Generic.List<string> ss = new System.Collections.Generic.List<string>();
-        ss.Add("<None>");
-        foreach (string o in old)
-        {  if (o.ToUpper().Contains(regx.ToUpper())) { ss.Add(o); }   }
-        return ss.ToArray();
+        skeletonRenderer = serializedObject.FindProperty("skeletonRenderer");
+        boneName = serializedObject.FindProperty("boneName");
+        followBoneRotation = serializedObject.FindProperty("followBoneRotation");
+        followZPosition = serializedObject.FindProperty("followZPosition");
+        component = (BoneFollower)target;
+        ForceReload();
+    }
+
+    void FindRenderer()
+    {
+        if (skeletonRenderer.objectReferenceValue == null)
+        {
+            SkeletonRenderer parentRenderer = SkeletonUtility.GetInParent<SkeletonRenderer>(component.transform);
+
+            if (parentRenderer != null)
+            {
+                skeletonRenderer.objectReferenceValue = (UnityEngine.Object)parentRenderer;
+            }
+
+        }
+    }
+
+    void ForceReload()
+    {
+        if (component.skeletonRenderer != null)
+        {
+            if (component.skeletonRenderer.valid == false)
+                component.skeletonRenderer.Reset();
+        }
+    }
+
+    override public void OnInspectorGUI()
+    {
+        if (needsReset)
+        {
+            component.Reset();
+            component.DoUpdate();
+            needsReset = false;
+            SceneView.RepaintAll();
+        }
+        serializedObject.Update();
+
+        FindRenderer();
+
+        EditorGUILayout.PropertyField(skeletonRenderer);
+
+        if (component.valid)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(boneName);
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+                needsReset = true;
+                serializedObject.Update();
+            }
+
+
+
+            EditorGUILayout.PropertyField(followBoneRotation);
+            EditorGUILayout.PropertyField(followZPosition);
+        }
+        else
+        {
+            GUILayout.Label("INVALID");
+        }
+
+        if (serializedObject.ApplyModifiedProperties() ||
+            (Event.current.type == EventType.ValidateCommand && Event.current.commandName == "UndoRedoPerformed")
+        )
+        {
+            component.Reset();
+        }
     }
 }
